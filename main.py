@@ -4,6 +4,7 @@ from typing import List
 from models import Event, Attendee, Ticket,EventWithTickets
 from pydantic import BaseModel
 from crud import create_event, get_attendees_for_event, get_events_next_30_days, count_tickets_by_ticket_type, assign_attendee_to_event, create_ticket,book_tickets
+from pubsub_client import publish_ticket_event
 
 app = FastAPI()
 
@@ -60,7 +61,8 @@ def book_ticket_api(
     attendee: Attendee = ...,  # Attendee details from request body
 ):
     try:
-        ticket_id = book_tickets(event, ticket_type, attendee)
-        return {"message": "Ticket booked successfully", "ticket_id": ticket_id}
+        ticket_details = book_tickets(event, ticket_type, attendee)
+        publish_ticket_event(ticket_details)
+        return {"message": "Ticket booked successfully", "ticket_id": ticket_details}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

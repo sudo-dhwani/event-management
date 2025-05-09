@@ -82,7 +82,7 @@ def create_ticket(event_id, attendee_id,ticket_type, price,expires_at):
         "expires_at":expires_at
     }
     db.collection("tickets").document(ticket_id).set(ticket_data)
-
+    return ticket_id
 
 def get_attendees_for_event(name,location) -> List[Attendee]:
     event_query = db.collection("events").where("name", "==", name).where("location", "==", location).get()
@@ -178,12 +178,18 @@ def book_tickets(event: Event, ticket_type: str, attendee: Attendee):
         print(attendee_ref)
         price= ticket_data.get("price",0)
         assign_attendee_to_event(event_ref.id, attendee_ref.id)
-        create_ticket(event_ref.id, attendee_ref.id,ticket_type, price,expires_at_str)
+        ticket_id = create_ticket(event_ref.id, attendee_ref.id,ticket_type, price,expires_at_str)
 
 
     return {
         "message": "Ticket booked successfully",
         "event_id": event_ref.id,
-        "ticket_type_id": ticket_type,
-        "attendee": attendee_ref.id
+        "event_name" :event_doc[0].get("name"),
+        "ticket_type": ticket_type,
+        "attendee": attendee_ref.get("name"),
+        "attendee_id": attendee_ref.id,
+        "attendee_email": attendee_ref.get("email"),
+        "phone":attendee_ref.get("phone"),
+        "ticket_id"  : ticket_id
+
     }
